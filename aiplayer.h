@@ -14,7 +14,7 @@ using std::unique_ptr;
 class AI {
 public:
     AI(gameboard& gb, bool playerxstarts, bool isplayerx);
-    ~AI() { }
+    ~AI();
     void informplayersmove(size_t row, size_t col);
     void makemove();
     void debugprint();
@@ -24,12 +24,14 @@ private:
     gameboard* gb;
     struct State {
         bool xplayersturn;
-        map<size_t, State*> children;
+        State* children[9];
         int minimaxval = -2;
     };
-    State* currentnode = new State;
-    void buildnodetree();
-    void debugfillstates(State* s);
+    State* root = new State;
+    State* currentnode = root;
+    void buildstatetree();
+    void assignminimaxvalues();
+    void assignminimaxvalues(State* s, gameboard& gb);
 };
 
 
