@@ -1,7 +1,7 @@
 # Define the compiler and the linker. The linker must be defined since
 # the implicit rule for linking uses CC as the linker. g++ can be
 # changed to clang++.
-CXX = g++
+CXX = clang++
 CC  = $(CXX)
 
 # Generate dependencies in *.d files
@@ -26,7 +26,7 @@ PROGS = game
 all: $(PROGS)
 
 # Targets rely on implicit rules for compiling and linking
-game: game.o
+game: game.o gameboard.o aiplayer.o
 
 # Phony targets 
 .PHONY: all clean distclean
