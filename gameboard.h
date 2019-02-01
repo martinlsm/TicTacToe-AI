@@ -12,6 +12,8 @@ using gameboard = tilestate[9];
 
 void makemove(gameboard& gb, size_t row, size_t col, bool xplayersturn);
 
+void cleartile(gameboard& gb, size_t row, size_t col);
+
 bool checkwin(gameboard& gb, bool xplayer);
 
 void printboard(gameboard& gb, std::ostream& os);

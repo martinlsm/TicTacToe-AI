@@ -1,15 +1,10 @@
-#ifndef AIPLAYER_H
+#ifndef AIPLAYER_H 
 #define AIPLAYER_H
 
 #include <vector>
-#include <map>
-#include <memory>
 #include "gameboard.h"
 
 using std::vector;
-using std::map;
-using std::pair;
-using std::unique_ptr;
 
 class AI {
 public:
@@ -23,13 +18,17 @@ private:
     bool isplayerx;
     gameboard* gb;
     struct State {
-        bool xplayersturn;
-        State* children[9];
+        State(State* parent, size_t actionindex, bool xplayersturn)
+            : parent(parent), actionindex(actionindex), xplayersturn(xplayersturn) { }
+        ~State();
+        State * const parent;
+        const size_t actionindex;
+        const bool xplayersturn;
+        vector<State*> children;
         int minimaxval = -2;
     };
-    State* root = new State;
+    State* root = new State(nullptr, -1, playerxstarts);
     State* currentnode = root;
-    void buildstatetree();
     void assignminimaxvalues();
     void assignminimaxvalues(State* s, gameboard& gb);
 };

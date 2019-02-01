@@ -6,6 +6,10 @@ void makemove(gameboard& gb, size_t row, size_t col, bool xplayersturn) {
     gb[row + 3 * col] = xplayersturn ? X : O;
 }
 
+void cleartile(gameboard& gb, size_t row, size_t col) {
+    gb[row + 3 * col] = EMPTY;
+}
+
 bool checkwin(gameboard& gb, bool xplayer) {
     tilestate p = xplayer ? X : O;
 

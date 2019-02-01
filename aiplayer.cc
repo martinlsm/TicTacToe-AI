@@ -1,97 +1,91 @@
 #include "aiplayer.h"
-#include <stack>
-
-using std::vector;
+#include "gameboard.h"
 
 AI::AI(gameboard& gb, bool playerxstarts, bool isplayerx)
-        : playerxstarts(playerxstarts), isplayerx(isplayerx) {
+    : playerxstarts(playerxstarts), isplayerx(isplayerx) {
     this->gb = &gb;
-    buildstatetree();
     assignminimaxvalues();
 }
 
-AI::~AI() {
-    std::stack<State*> statestack;
-    statestack.push(root);
-    while (!statestack.empty()) {
-        State* temp = statestack.top();
-        statestack.pop();
-        for (int i = 0; i < 9; i++) {
-            if (temp->children[i] != nullptr) {
-                statestack.push(temp->children[i]);
-            }
-        }
-        delete temp;
-    }
-}
-
-void AI::buildstatetree() {
-    currentnode->xplayersturn = playerxstarts;
-    for (size_t i = 0; i < 9; i++) {
-        currentnode->children[i] = new State;
-    }
-    std::stack<State*> statestack;
-    statestack.push(currentnode);
-    while (!statestack.empty()) {
-        State* poppedstate = statestack.top();
-        statestack.pop();
-        for (size_t i = 0; i < 9; i++) {
-            State* child = poppedstate->children[i];
-            if (child == nullptr) {
-                continue;
-            }
-            for (size_t k = 0; k < 9; k++) {
-                if (poppedstate->children[k] != nullptr && k != i) {
-                    child->children[k] = new State;
-                } else {
-                    child->children[k] = nullptr;
-                }
-            }
-            child->xplayersturn = !poppedstate->xplayersturn;
-            statestack.push(child);
-        }
-    }
-}
-
 void AI::assignminimaxvalues() {
-    gameboard simulationboard;
-    assignminimaxvalues(root, simulationboard);
+    root->minimaxval = 0;
+    gameboard gb;    
+    for (int i = 0; i < 9; i++) gb[i] = EMPTY;
+    root->children = vector<State*>();
+    for (int i = 0; i < 9; i++) {
+        root->children.push_back(new State(root, i, !root->xplayersturn));
+    }
+    for (State* s : root->children) { 
+        ::makemove(gb, s->actionindex / 3, s->actionindex % 3, playerxstarts); 
+        assignminimaxvalues(s, gb);
+        cleartile(gb, s->actionindex / 3, s->actionindex % 3);
+    }
 }
 
 void AI::assignminimaxvalues(State* s, gameboard& gb) {
-    bool lastmovewon = checkwin(gb, !s->xplayersturn);
-    if (lastmovewon) {
+    bool lastplayerwon = checkwin(gb, !s->xplayersturn);
+    if (lastplayerwon) {
         if (isplayerx ^ s->xplayersturn) {
             s->minimaxval = 1;
         } else {
             s->minimaxval = -1;
         }
     } else {
-        s->minimaxval = 0;
-        for (int i = 0; i < 9; i++) {
-            if (s->children[i] != nullptr) {
-                gb[i] = s->xplayersturn;
-                assignminimaxvalues(s->children[i], gb);
-                gb[i] = EMPTY;
+        s->children = vector<State*>();
+        for (size_t i = 0; i < 9; i++) {
+            if (gb[i] == EMPTY) {
+                s->children.push_back(new State(s, i, !s->xplayersturn));    
+            }
+        }
+        for (State* child : s->children) {
+            gb[child->actionindex] = s->xplayersturn ? X : O;
+            assignminimaxvalues(child, gb);
+            gb[child->actionindex] = EMPTY;
+        }
+        if (s->children.empty()) {
+            s->minimaxval = 0;
+        }
+        if (!(s->xplayersturn ^ isplayerx)) {
+            int max = -2;
+            for (State* child : s->children) {
+                max = std::max(max, child->minimaxval);
+            }
+        } else {
+            int min = 2;
+            for (State* child : s->children) {
+                min = std::min(min, child->minimaxval);
             }
         }
     }
 }
 
-void AI::debugprint() {
-    State* s = currentnode;
-    for (int i = 0; i < 9; i++) {
-        std::cout << (s->xplayersturn ? X : O) << ": ";
-        for (int j = 0; j < 9; j++) {
-            if (s->children[j] != nullptr) {
-                std::cout << j << " ";
-            }
-        }
-        std::cout << std::endl;
-        s = s->children[i];
+AI::~AI() { }
+
+void AI::makemove() {
+    if (currentnode->children.empty()) {
+        std::cout << "AI cant make a move." << std::endl;
     }
+    State* maxchild = currentnode->children[0];
+    for (State* child : currentnode->children) {
+        if (child->minimaxval > maxchild->minimaxval) {
+            maxchild = child;
+        }
+    }
+    (*gb)[maxchild->actionindex] = isplayerx ? X : O;
+    currentnode = maxchild;
 }
 
 void AI::informplayersmove(size_t row, size_t col) {
-    currentnode = currentnode->children[row + 3 * col];
-} 
+    size_t index = row + 3 * col;
+    for (State* child : currentnode->children) {
+        if (index == child->actionindex) {
+            currentnode = child;
+            return;
+        }
+    }
+    throw "AI consideres this move invalid.";
+}
+
+void AI::debugprint() {
+
+}

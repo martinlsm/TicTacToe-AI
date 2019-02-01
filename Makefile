@@ -1,7 +1,7 @@
 # Define the compiler and the linker. The linker must be defined since
 # the implicit rule for linking uses CC as the linker. g++ can be
 # changed to clang++.
-CXX = clang++
+CXX = g++
 CC  = $(CXX)
 
 # Generate dependencies in *.d files
