@@ -16,9 +16,9 @@ void AI::assignminimaxvalues() {
         root->children.push_back(new State(root, i, !root->xplayersturn));
     }
     for (State* s : root->children) { 
-        ::makemove(gb, s->actionindex / 3, s->actionindex % 3, playerxstarts); 
+        gb[s->actionindex] = root->xplayersturn ? X : O;
         assignminimaxvalues(s, gb);
-        cleartile(gb, s->actionindex / 3, s->actionindex % 3);
+        gb[s->actionindex] = EMPTY;
     }
 }
 
@@ -44,22 +44,31 @@ void AI::assignminimaxvalues(State* s, gameboard& gb) {
         }
         if (s->children.empty()) {
             s->minimaxval = 0;
-        }
-        if (!(s->xplayersturn ^ isplayerx)) {
+        } else if (!(s->xplayersturn ^ isplayerx)) {
             int max = -2;
             for (State* child : s->children) {
                 max = std::max(max, child->minimaxval);
             }
+            s->minimaxval = max;
         } else {
             int min = 2;
             for (State* child : s->children) {
                 min = std::min(min, child->minimaxval);
             }
+            s->minimaxval = min;
         }
     }
 }
 
-AI::~AI() { }
+AI::~AI() {
+    delete root;
+}
+
+AI::State::~State() {
+    for (State* s : children) {
+        delete s;
+    }
+}
 
 void AI::makemove() {
     if (currentnode->children.empty()) {
@@ -71,7 +80,10 @@ void AI::makemove() {
             maxchild = child;
         }
     }
-    (*gb)[maxchild->actionindex] = isplayerx ? X : O;
+    char c = isplayerx ? X : O;
+    std::cout << "AI places " << c << " on (" << (maxchild->actionindex % 3) + 1
+            << ", " << (maxchild->actionindex / 3) + 1 << ")\n";
+    (*gb)[maxchild->actionindex] = c;
     currentnode = maxchild;
 }
 

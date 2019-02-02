@@ -20,7 +20,5 @@ void printboard(gameboard& gb, std::ostream& os);
 
 size_t boardindexconvert(const std::string& str);
 
-void makemovefromcommand(gameboard& gb, bool xplayer, std::istream& is);
-
 
 #endif

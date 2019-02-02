@@ -3,6 +3,12 @@
 
 
 void makemove(gameboard& gb, size_t row, size_t col, bool xplayersturn) {
+    if (row >= 3 || col >= 3) {
+        throw std::invalid_argument("Not a valid matrix index");
+    }
+    if (gb[row + 3 * col] != EMPTY) {
+        throw std::invalid_argument("Spot already taken");
+    }
     gb[row + 3 * col] = xplayersturn ? X : O;
 }
 
@@ -40,6 +46,7 @@ void printboard(gameboard& gb, std::ostream& os) {
         }
         os << "\n";
     }
+    os << "\n";
 }
 
 size_t boardindexconvert(const std::string& str) {
@@ -47,18 +54,4 @@ size_t boardindexconvert(const std::string& str) {
         return std::stoi(str);
     }
     throw std::invalid_argument("Not a valid matrix index");
-}
-
-void makemovefromcommand(gameboard& gb, bool xplayer, std::istream& is) {
-    size_t row, col;
-    is >> row >> col;
-    row--;
-    col--;
-    if (row >= 3 || col >= 3) {
-        throw std::invalid_argument("Not a valid matrix index");
-    }
-    if (gb[row + 3 * col] != EMPTY) {
-        throw std::invalid_argument("Spot already taken");
-    }
-    makemove(gb, row, col, xplayer);
 }
